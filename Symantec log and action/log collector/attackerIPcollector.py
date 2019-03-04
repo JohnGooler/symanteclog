@@ -66,12 +66,7 @@ def pushdb(val):
         conndb.close()
 
     except mysql.connector.Error as err:
-        print("Something went wrong: {}".format(err))
-    finally:
-    #closing database connection.
-        if(conndb.is_connected()):
-            mycursor.close()
-            conndb.close()     
+        print("Something went wrong: {}".format(err))    
 
 # pull from database function
 def pulldb(query):
@@ -90,11 +85,6 @@ def pulldb(query):
         return result
     except mysql.connector.Error as err:
         print("Something went wrong: {}".format(err))
-    finally:
-    #closing database connection.
-        if(conndb.is_connected()):
-            mycursor.close()
-            conndb.close()
 
 
 # remove duplicate ips from local
@@ -118,9 +108,11 @@ def main():
             print("\r Make sure The Symantec Antiviruse is installed")
         ############## end of symantec log collector################################################
 
-        old_ip = pulldb("SELECT attackerip FROM attackers.ip_details")
-        old_ip = [list(x) for x in old_ip]
-
+        try:
+            old_ip = pulldb("SELECT attackerip FROM attackers.ip_details")
+            old_ip = [list(x) for x in old_ip]
+        except:
+            print('Make Sure The database are connected')
         usable_log = []
         # Check Symanteclog is exist?
         line_number = sum(1 for line in open(dir_path + "\\symanteclog\\symantecsec.log", "r"))
@@ -136,9 +128,10 @@ def main():
             index_number = [6]
             filterd = [logs[val] for val in index_number]
             usable_log.append(filterd)
-
-        usable_log = remove_dub(usable_log, old_ip)
-
+        try:
+            usable_log = remove_dub(usable_log, old_ip)
+        except:
+            print('Make Sure the files are exist')
         # write ips to database
         pushdb(usable_log)
         # wait 60 seconds

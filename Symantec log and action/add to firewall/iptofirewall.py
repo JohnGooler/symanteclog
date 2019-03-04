@@ -59,11 +59,6 @@ def pushdb(query, value):
         print("Something went wrong: {}".format(err))
         #reverting changes because of exception
         conndb.rollback()
-    finally:
-    #closing database connection.
-        if(conndb.is_connected()):
-            mycursor.close()
-            conndb.close()
 
 # pull from database function
 def pulldb(query):
@@ -82,11 +77,6 @@ def pulldb(query):
         return result
     except mysql.connector.Error as err:
         print("Something went wrong: {}".format(err))
-    finally:
-    #closing database connection.
-        if(conndb.is_connected()):
-            mycursor.close()
-            conndb.close()
 
 # Send Ips over SSH
 def send_to_firewall(ip):
@@ -105,12 +95,12 @@ def main():
         new_ips = pulldb("SELECT attackerip FROM attackers.ip_details where addedtofirewall = 0")
         if new_ips == []:
             print("No new Record")
-        # new_ips = [list(x) for x in new_ips]
-        
+
         try:
             for i in new_ips:
                 i = i[0]
                 firewall_message = send_to_firewall(i)
+                # write ips to database
                 if firewall_message == "":
                     pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', i))
                     print("added to firewall black list %s" %i)
@@ -121,7 +111,6 @@ def main():
                     print(firewall_message)
         except Exception as e:
             print(e)
-        # write ips to database
         
         # wait 60 seconds
         countdown(refreshtime)
