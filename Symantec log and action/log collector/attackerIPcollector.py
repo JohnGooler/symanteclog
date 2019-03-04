@@ -1,4 +1,4 @@
-import os,subprocess, mysql.connector, time
+import os, subprocess, mysql.connector, time
 
 # get the dir path of this file
 dir_path = os.path.dirname(os.path.realpath(__file__))
