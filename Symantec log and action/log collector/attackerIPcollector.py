@@ -110,7 +110,7 @@ def remove_dub(newdata, olddata):
 
 def main():
     while True:
-        # run symantec app for generate security logs and placed it in directory tha has been created
+        # run symantec app for generated security logs and placed it in directory that has been created
         try:
             subprocess.call(['smc', '-exportlog' ,'1', '0', '-1', dir_path + '\\symanteclog\\symantecsec.log'])
         except Exception as e:
