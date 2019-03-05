@@ -53,7 +53,6 @@ def pushdb(val):
         mycursor = conndb.cursor()
 
         sql = "INSERT INTO ip_details (attackerip, addedtofirewall) VALUES (%s, 'no')"
-        val = val
 
         mycursor.executemany(sql, val)
         conndb.commit()
