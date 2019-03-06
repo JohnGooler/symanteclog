@@ -61,8 +61,6 @@ def pushdb(val):
             print(mycursor.rowcount, "record inserted.")
         else:
             print('No New Record')
-        mycursor.close()
-        conndb.close()
 
     except mysql.connector.Error as err:
         print("Something went wrong: {}".format(err))    
@@ -86,7 +84,7 @@ def pulldb(query):
         print("Something went wrong: {}".format(err))
 
 
-# remove duplicate ips from local
+# remove duplicate ips
 def remove_dub(newdata, olddata):
     seen = []
     for i in newdata:
