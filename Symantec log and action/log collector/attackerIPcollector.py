@@ -98,11 +98,11 @@ def remove_dub(newdata, olddata):
 def main():
     while True:
         # run symantec app for generated security logs and placed it in directory that has been created
-        # try:
-        #     subprocess.call(['smc', '-exportlog' ,'1', '0', '-1', dir_path + '\\symanteclog\\symantecsec.log'])
-        # except Exception as e:
-        #     print(e)
-        #     print("\r Make sure The Symantec Antiviruse is installed")
+        try:
+            subprocess.call(['smc', '-exportlog' ,'1', '0', '-1', dir_path + '\\symanteclog\\symantecsec.log'])
+        except Exception as e:
+            print(e)
+            print("\r Make sure The Symantec Antiviruse is installed")
         ############## end of symantec log collector################################################
 
         try:
@@ -127,7 +127,7 @@ def main():
             logs = f.readline().split('\t')
             
             # Get only IP address from Log
-            
+
             index_number = [6]
             try:
                 filterd = [logs[val] for val in index_number]
