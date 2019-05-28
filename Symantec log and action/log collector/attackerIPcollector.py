@@ -98,11 +98,11 @@ def remove_dub(newdata, olddata):
 def main():
     while True:
         # run symantec app for generated security logs and placed it in directory that has been created
-        try:
-            subprocess.call(['smc', '-exportlog' ,'1', '0', '-1', dir_path + '\\symanteclog\\symantecsec.log'])
-        except Exception as e:
-            print(e)
-            print("\r Make sure The Symantec Antiviruse is installed")
+        # try:
+        #     subprocess.call(['smc', '-exportlog' ,'1', '0', '-1', dir_path + '\\symanteclog\\symantecsec.log'])
+        # except Exception as e:
+        #     print(e)
+        #     print("\r Make sure The Symantec Antiviruse is installed")
         ############## end of symantec log collector################################################
 
         try:
@@ -110,10 +110,14 @@ def main():
             old_ip = [list(x) for x in old_ip]
         except:
             print('Make Sure The database are connected')
-        usable_log = []
-        # Check Symanteclog if exist
-        line_number = sum(1 for line in open(dir_path + "\\symanteclog\\symantecsec.log", "r"))
         
+        # create an empty list for all ip address
+        usable_log = []
+        
+        # Check Symanteclog if exist
+        
+        line_number = sum(1 for line in open(dir_path + "\\symanteclog\\symantecsec.log", "r"))
+
         try:
             f = open(dir_path + "\\symanteclog\\symantecsec.log", "r")
         except Exception as e:
@@ -121,16 +125,26 @@ def main():
         
         for line in range(line_number):
             logs = f.readline().split('\t')
+            
             # Get only IP address from Log
+            
             index_number = [6]
-            filterd = [logs[val] for val in index_number]
-            usable_log.append(filterd)
+            try:
+                filterd = [logs[val] for val in index_number]
+                usable_log.append(filterd)
+
+            except IndexError:
+                pass
+                
         try:
             usable_log = remove_dub(usable_log, old_ip)
+
         except:
             print('Make Sure the files are exist')
+
         # write ips to database
         pushdb(usable_log)
+        
         # wait 60 seconds
         countdown(refreshtime)
 
