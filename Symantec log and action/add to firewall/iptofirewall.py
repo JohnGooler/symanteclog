@@ -86,6 +86,7 @@ def send_to_firewall(ip):
     stdin, stdout, stderr = sshclient.exec_command("ip firewall address-list add address=%s list=blockedbysymantec" %ip)
     opt = stdout.readlines()
     opt = "".join(opt)
+    sshclient.close()
     return opt
 
 
@@ -97,22 +98,23 @@ def main():
             print("No new Record")
 
         try:
-            for i in new_ips:
-                i = i[0]
-                firewall_message = send_to_firewall(i)
-                # write ips to database
+            for ip in new_ips:
+                # convert to list because Mysql can not accept tuple
+                ip = ip[0]
+                firewall_message = send_to_firewall(ip)
+                # write ips to FireWall and then change the ip state
                 if firewall_message == "":
-                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', i))
-                    print("added to firewall black list %s" %i)
+                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
+                    print("added to firewall black list %s" %ip)
                 elif firewall_message == 'failure: already have such entry\n':
-                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', i))
-                    print('Duplicated Ip Detected: %s' %i)
+                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
+                    print('Duplicated Ip Detected: %s' %ip)
                 else:
                     print(firewall_message)
         except Exception as e:
             print(e)
         
-        # wait 60 seconds
+        # wait in seconds that defined in config
         countdown(refreshtime)
 
 

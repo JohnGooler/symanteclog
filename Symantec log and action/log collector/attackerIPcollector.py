@@ -111,7 +111,7 @@ def main():
         except:
             print('Make Sure The database are connected')
         usable_log = []
-        # Check Symanteclog is exist?
+        # Check Symanteclog if exist
         line_number = sum(1 for line in open(dir_path + "\\symanteclog\\symantecsec.log", "r"))
         
         try:
