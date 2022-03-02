@@ -90,10 +90,11 @@ def send_to_firewall(ip):
     sshclient = paramiko.SSHClient()
     sshclient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     sshclient.connect(sshhost, username=sshuser, password=sshpass, port=sshport)
-    stdin, stdout, stderr = sshclient.exec_command("aliasmod add %s %s" %PF_alias_Name %ip)
+    stdin, stdout, stderr = sshclient.exec_command("aliasmod add %s %s" % (PF_alias_Name, ip))
     opt = stdout.readlines()
     opt = "".join(opt)
     sshclient.close()
+    time.sleep(1)
     return opt
 
 
@@ -110,10 +111,10 @@ def main():
                 ip = ip[0]
                 firewall_message = send_to_firewall(ip)
                 # write ips to FireWall and then change the ip state
-                if firewall_message == "":
+                if firewall_message == "\n":
                     pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
                     print("added to firewall black list %s" %ip)
-                elif firewall_message == 'failure: already have such entry\n':
+                elif firewall_message != '\n':
                     pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
                     print('Duplicated Ip Detected: %s' %ip)
                 else:
