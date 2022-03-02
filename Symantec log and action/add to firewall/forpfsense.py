@@ -3,9 +3,7 @@ I use aliasmod On PFsense to add/del ip to alias.
 create an alias name in PFsense and set the name in script
 
 """
-import os,subprocess, mysql.connector, time, paramiko
-
-PF_alias_Name = "Symantec_Blocked"
+import os, mysql.connector, time, paramiko
 
 # get the dir path of this file
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -34,6 +32,8 @@ with open(dir_path + "\\config\\config.conf") as conf:
             sshport = configline[1]
         elif configline[0] == 'iplistname':
             iplistname = configline[1]
+        elif configline[0] == 'PF_alias_Name':
+            PF_alias_Name = configline[1]
 
 # countdown function
 def countdown(t):

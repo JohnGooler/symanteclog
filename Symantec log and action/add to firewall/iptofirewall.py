@@ -1,3 +1,8 @@
+"""
+Send Ip address to Mikrotik address list with SSH
+
+"""
+
 import os,subprocess, mysql.connector, time, paramiko
 
 # get the dir path of this file
