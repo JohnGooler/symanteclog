@@ -1,4 +1,11 @@
+"""
+I use aliasmod On PFsense to add/del ip to alias.
+create an alias name in PFsense and set the name in script
+
+"""
 import os,subprocess, mysql.connector, time, paramiko
+
+PF_alias_Name = "Symantec_Blocked"
 
 # get the dir path of this file
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -83,7 +90,7 @@ def send_to_firewall(ip):
     sshclient = paramiko.SSHClient()
     sshclient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     sshclient.connect(sshhost, username=sshuser, password=sshpass, port=sshport)
-    stdin, stdout, stderr = sshclient.exec_command("ip firewall address-list add address=%s list=blockedbysymantec" %ip)
+    stdin, stdout, stderr = sshclient.exec_command("aliasmod add %s %s" %PF_alias_Name %ip)
     opt = stdout.readlines()
     opt = "".join(opt)
     sshclient.close()
