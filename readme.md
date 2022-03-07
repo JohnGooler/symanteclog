@@ -5,6 +5,7 @@ Get the security log from Symantec IDS/IPS and find the IP-address that attacked
 Then add those IPs to mikrotik firewall through SSH.
 
 Install Python Dependencies:
+
     -pip3 install mysql-connector-python
     -pip3 install paramiko
 
