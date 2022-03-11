@@ -1,7 +1,6 @@
 """
 I use aliasmod On PFsense to add/del ip to alias.
 create an alias name in PFsense and set the name in script
-
 """
 import os, mysql.connector, time, paramiko
 
