@@ -26,6 +26,7 @@ CREATE TABLE `ip_details` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `attackerip` varchar(15) NOT NULL,
   `addedtofirewall` varchar(5) DEFAULT NULL,
+  `created` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `attackerip_UNIQUE` (`attackerip`)
