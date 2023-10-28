@@ -3,7 +3,8 @@ Send Ip address to Mikrotik address list with SSH
 
 """
 
-import os,subprocess, mysql.connector, time, paramiko
+import os, mysql.connector, time ,paramiko
+import api
 
 # get the dir path of this file
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -32,6 +33,16 @@ with open(dir_path + "\\config\\config.conf") as conf:
             sshport = configline[1]
         elif configline[0] == 'iplistname':
             iplistname = configline[1]
+        elif configline[0] == 'mikrotikhost':
+            mikrotikhost = configline[1]
+        elif configline[0] == 'mikrotikapiuser':
+            mikrotikapiuser = configline[1]
+        elif configline[0] == 'mikrotikapipass':
+            mikrotikapipass = configline[1]
+        elif configline[0] == 'mikrotikapiport':
+            mikrotikapiport = configline[1]
+        elif configline[0] == 'ipblocktimeout':
+            ipblocktimeout = configline[1]
 
 # countdown function
 def countdown(t):
@@ -83,6 +94,19 @@ def pulldb(query):
     except mysql.connector.Error as err:
         print("Something went wrong: {}".format(err))
 
+# Send IPs Over Mikrotik API
+def Send_to_Mikroitk_API(mikrotikhost, ip, ipblocktimeout, iplistname):
+    router = api.Api(mikrotikhost)
+    try:
+        r = router.talk(f'/ip/firewall/address-list/add =list={iplistname} =address={ip} =timeout={ipblocktimeout}')
+        if r == []:
+            return ""
+        else:
+            return r
+
+    except Exception as e:
+        return e.args[0]
+
 # Send Ips over SSH
 def send_to_firewall(ip):
     sshclient = paramiko.SSHClient()
@@ -106,12 +130,16 @@ def main():
             for ip in new_ips:
                 # convert to list because Mysql can not accept tuple
                 ip = ip[0]
-                firewall_message = send_to_firewall(ip)
+                # firewall_message = send_to_firewall(ip)
+                firewall_message = Send_to_Mikroitk_API(mikrotikhost, ip, ipblocktimeout, iplistname)
                 # write ips to FireWall and then change the ip state
                 if firewall_message == "":
                     pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
                     print("added to firewall black list %s" %ip)
                 elif firewall_message == 'failure: already have such entry\n':
+                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
+                    print('Duplicated Ip Detected: %s' %ip)
+                elif "already have such entry" in firewall_message.split("\n")[2]:
                     pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
                     print('Duplicated Ip Detected: %s' %ip)
                 else:
@@ -121,7 +149,6 @@ def main():
         
         # wait in seconds that defined in config
         countdown(refreshtime)
-
-
+        
 if __name__ == "__main__":
     main()
