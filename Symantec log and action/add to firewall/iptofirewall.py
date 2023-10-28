@@ -1,5 +1,5 @@
 """
-Send Ip address to Mikrotik address list with SSH
+Send Ip address to Mikrotik address list with Api
 
 """
 
