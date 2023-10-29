@@ -1,6 +1,5 @@
 """
 Send Ip address to Mikrotik address list with Api
-
 """
 
 import os, mysql.connector, time ,paramiko
@@ -56,43 +55,69 @@ def countdown(t):
     print('continue...')
 
 
-# push to database fucntion
-def pushdb(query, value):
+def DB_Connect(query, value, method):
     try:
-        conndb = mysql.connector.connect(
+        if method == 'push':
+            conndb = mysql.connector.connect(
             host=host,
             user=user,
             passwd=passwd,
             database=database,
-            # auth_plugin='mysql_native_password',
-        )
+            #auth_plugin='mysql_native_password',
+            )
 
-        mycursor = conndb.cursor()
-        mycursor.execute(query ,value)
-        conndb.commit()
+            mycursor = conndb.cursor()
+            mycursor.executemany(query, value)
+            conndb.commit()
+            
+            #print inserted record
+            if mycursor.rowcount > 0:
+                print(mycursor.rowcount, "record inserted.")
+            
+            else:
+                print('No New Record')
+                
 
-    except mysql.connector.Error as err:
-        print("Something went wrong: {}".format(err))
-        #reverting changes because of exception
-        conndb.rollback()
+        elif method == 'update':
+            conndb = mysql.connector.connect(
+            host=host,
+            user=user,
+            passwd=passwd,
+            database=database,
+            #auth_plugin='mysql_native_password',
+            )
 
-# pull from database function
-def pulldb(query):
-    try:
-        conndb = mysql.connector.connect(
-        host=host,
-        user=user,
-        passwd=passwd,
-        database=database,
-        # auth_plugin='mysql_native_password',
-        )
+            mycursor = conndb.cursor()
+            mycursor.execute(query, value)
+            conndb.commit()
+            
+            #print inserted record
+            if mycursor.rowcount > 0:
+                print(mycursor.rowcount, "record Updated.")
+            
+            else:
+                print('No New Record')
 
-        mycursor = conndb.cursor()
-        mycursor.execute(query)
-        result = mycursor.fetchall()
-        return result
-    except mysql.connector.Error as err:
-        print("Something went wrong: {}".format(err))
+        elif method == 'pull':
+            conndb = mysql.connector.connect(
+            host=host,
+            user=user,
+            passwd=passwd,
+            database=database,
+            #auth_plugin='mysql_native_password',
+            )
+
+            mycursor = conndb.cursor()
+            mycursor.execute(query)
+            result = mycursor.fetchall()
+            return result
+
+        else:
+            raise('Method is not Correct')
+    
+    except Exception as err:
+        print("Something went wrong: {}".format(err)) 
+
 
 # Send IPs Over Mikrotik API
 def Send_to_Mikroitk_API(mikrotikhost, ip, ipblocktimeout, iplistname):
@@ -122,25 +147,25 @@ def send_to_firewall(ip):
 
 def main():
     while True:
-        new_ips = pulldb("SELECT attackerip FROM attackers.ip_details where addedtofirewall = 0")
+        new_ips = DB_Connect("SELECT attackerip FROM attackers.ip_details where addedtofirewall = 0", None, 'pull')
         if new_ips == []:
             print("No new Record")
 
         try:
             for ip in new_ips:
-                # convert to list because Mysql can not accept tuple
+                # convert to list because For Mysql
                 ip = ip[0]
                 # firewall_message = send_to_firewall(ip)
                 firewall_message = Send_to_Mikroitk_API(mikrotikhost, ip, ipblocktimeout, iplistname)
                 # write ips to FireWall and then change the ip state
                 if firewall_message == "":
-                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
+                    DB_Connect("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
                     print("added to firewall black list %s" %ip)
                 elif firewall_message == 'failure: already have such entry\n':
-                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
+                    DB_Connect("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
                     print('Duplicated Ip Detected: %s' %ip)
                 elif "already have such entry" in firewall_message.split("\n")[2]:
-                    pushdb("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip))
+                    DB_Connect("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
                     print('Duplicated Ip Detected: %s' %ip)
                 else:
                     print(firewall_message)
