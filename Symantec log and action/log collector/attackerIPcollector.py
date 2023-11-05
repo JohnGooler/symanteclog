@@ -1,9 +1,23 @@
-import os, subprocess, mysql.connector, time
+import sys, os, subprocess, mysql.connector, time
+from mysql.connector.plugins import mysql_native_password
+from mysql.connector.locales.eng import client_error
 from persiantools.jdatetime import JalaliDate
 from datetime import datetime
 
 # get the dir path of this file
-dir_path = os.path.dirname(os.path.realpath(__file__))
+def get_script_folder():
+    # path of main .py or .exe when converted with pyinstaller
+    if getattr(sys, 'frozen', False):
+        script_path = os.path.dirname(sys.executable)
+    else:
+        script_path = os.path.dirname(
+            os.path.abspath(sys.modules['__main__'].__file__)
+        )
+    return script_path
+
+
+# dir_path = os.path.dirname(os.path.realpath(__file__))
+dir_path = get_script_folder()
 
 # Read database config file in config dir
 with open(dir_path + "\\config\\config.conf") as conf:
@@ -50,7 +64,7 @@ def DB_Connect(query, value, method):
             user=user,
             passwd=passwd,
             database=database,
-            #auth_plugin='mysql_native_password',
+            auth_plugin='mysql_native_password',
             )
 
             mycursor = conndb.cursor()
@@ -70,7 +84,7 @@ def DB_Connect(query, value, method):
             user=user,
             passwd=passwd,
             database=database,
-            #auth_plugin='mysql_native_password',
+            auth_plugin='mysql_native_password',
             )
 
             mycursor = conndb.cursor()
@@ -84,22 +98,22 @@ def DB_Connect(query, value, method):
             user=user,
             passwd=passwd,
             database=database,
-            #auth_plugin='mysql_native_password',
+            auth_plugin='mysql_native_password',
             )
 
             mycursor = conndb.cursor()
             mycursor.execute(query)
             conndb.commit()
-            print(mycursor.rowcount, "record(s) deleted")
+            print(mycursor.rowcount, "IP(s) deleted")
 
         else:
             raise('Method is not Correct')
     
     except Exception as err:
-        print("Something went wrong: {}".format(err)) 
+        print("Something went wrong: {}".format(err))
 
-# remove duplicate ips
-def remove_dub(newdata, olddata):    
+# remove duplicate ips and trusted ips
+def remove_dub(newdata, olddata, white_list):    
     seen = []
     #convert oldips to sigle array for easy compare
     oldips = [item for olddata in olddata for item in olddata]
@@ -108,12 +122,23 @@ def remove_dub(newdata, olddata):
             #Check one by one IPs
             if i[0] not in [x[0] for x in seen]:
                 if i[0] not in oldips:
-                    seen.append(i)
+                    if i[0] not in white_list:
+                        seen.append(i)
         except Exception as e:
             print(e)
 
     seen = list(seen)
     return seen
+
+# get the Trusted ips from Database only when the app is running for the fist time
+try:
+    print("Get Trusted Ips")
+    white_list_ip = DB_Connect("SELECT ip FROM white_list_ip", None, 'pull')
+    white_list_ip = [list(x) for x in white_list_ip]
+    white_list_ip = [item for white_list_ip in white_list_ip for item in white_list_ip]
+    print("Done")
+except:
+    print('Make Sure The database are connected')
 
 
 def main():
@@ -127,7 +152,7 @@ def main():
         ############## end of symantec log collector################################################
 
         try:
-            old_ip = DB_Connect("SELECT attackerip FROM attackers.ip_details", None, 'pull')
+            old_ip = DB_Connect("SELECT attackerip FROM ip_details", None, 'pull')
             old_ip = [list(x) for x in old_ip]
         except:
             print('Make Sure The database are connected')
@@ -195,7 +220,7 @@ def main():
 
         #remove duplicated IPS
         try:
-            Ip_of_attacher = remove_dub(FinalIPS, old_ip)
+            Ip_of_attacher = remove_dub(FinalIPS, old_ip, white_list_ip)
             
         except:
             print('Make Sure the files are exist')
