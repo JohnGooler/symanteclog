@@ -1,12 +1,28 @@
 """
 Send Ip address to Mikrotik address list with Api
+
 """
 
-import os, mysql.connector, time ,paramiko
+import os, sys, mysql.connector, time ,paramiko
+from mysql.connector.plugins import mysql_native_password
+from mysql.connector.locales.eng import client_error
 import api
 
 # get the dir path of this file
-dir_path = os.path.dirname(os.path.realpath(__file__))
+# dir_path = os.path.dirname(os.path.realpath(__file__))
+
+# get the dir path of this file
+def get_script_folder():
+    # path of main .py or .exe when converted with pyinstaller
+    if getattr(sys, 'frozen', False):
+        script_path = os.path.dirname(sys.executable)
+    else:
+        script_path = os.path.dirname(
+            os.path.abspath(sys.modules['__main__'].__file__)
+        )
+    return script_path
+
+dir_path = get_script_folder()
 
 # Read database config file in config dir
 with open(dir_path + "\\config\\config.conf") as conf:
@@ -93,7 +109,7 @@ def DB_Connect(query, value, method):
             
             #print inserted record
             if mycursor.rowcount > 0:
-                print(mycursor.rowcount, "record Updated.")
+                print("IP status Updated")
             
             else:
                 print('No New Record')
@@ -147,7 +163,7 @@ def send_to_firewall(ip):
 
 def main():
     while True:
-        new_ips = DB_Connect("SELECT attackerip FROM attackers.ip_details where addedtofirewall = 0", None, 'pull')
+        new_ips = DB_Connect("SELECT attackerip FROM ip_details where addedtofirewall = 0", None, 'pull')
         if new_ips == []:
             print("No new Record")
 
@@ -159,13 +175,13 @@ def main():
                 firewall_message = Send_to_Mikroitk_API(mikrotikhost, ip, ipblocktimeout, iplistname)
                 # write ips to FireWall and then change the ip state
                 if firewall_message == "":
-                    DB_Connect("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
+                    DB_Connect("UPDATE ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
                     print("added to firewall black list %s" %ip)
                 elif firewall_message == 'failure: already have such entry\n':
-                    DB_Connect("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
+                    DB_Connect("UPDATE ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
                     print('Duplicated Ip Detected: %s' %ip)
                 elif "already have such entry" in firewall_message.split("\n")[2]:
-                    DB_Connect("UPDATE attackers.ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
+                    DB_Connect("UPDATE ip_details SET addedtofirewall = %s WHERE attackerip = %s", ('1', ip), 'update')
                     print('Duplicated Ip Detected: %s' %ip)
                 else:
                     print(firewall_message)
