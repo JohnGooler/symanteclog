@@ -10,3 +10,13 @@ CREATE TABLE `ip_details` (
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `attackerip_UNIQUE` (`attackerip`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2875 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP TABLE IF EXISTS `white_list_ip`;
+CREATE TABLE `white_list_ip` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `ip` varchar(15) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `whitelistip_UNIQUE` (`ip`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+)
