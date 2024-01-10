@@ -181,7 +181,8 @@ def main():
 
                 #need a proper date format for database, then convert persian date to gregorian date
                 try:
-                    filterd_tarikh = [logs[tarikh][:10] for tarikh in date_index_number]
+                    # get only date form log file
+                    filterd_tarikh = [logs[tarikh].split(" ")[0] for tarikh in date_index_number]
                     filterd_tarikh = filterd_tarikh[0].split('/')
                     filterd_tarikh = [int(x) for x in filterd_tarikh]
                     #If Jalali date detected, we will convert it to gregorian
