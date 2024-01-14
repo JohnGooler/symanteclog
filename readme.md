@@ -2,7 +2,7 @@
 
 Get the security log from Symantec IDS/IPS and find the IP-address that attacked. 
 
-Then add those IPs to mikrotik firewall through SSH.
+Then add those IPs to mikrotik firewall through API or SSH.
 
 Install Python Dependencies:
 
