@@ -7,7 +7,7 @@ Then add those IPs to mikrotik firewall through API or SSH.
 Install Python Dependencies:
 
     -pip3 install mysql-connector-python
-    -pip3 install paramiko
+    -pip3 install paramiko #for pfsense only
 
 
 Before run:
