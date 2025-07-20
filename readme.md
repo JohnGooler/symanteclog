@@ -1,4 +1,4 @@
-# Symantec Security log catcher.
+# Symantec Security log to firewall.
 
 Get the security log from Symantec IDS/IPS and find the IP-address that attacked. 
 
