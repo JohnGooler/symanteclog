@@ -6,7 +6,7 @@ Send Ip address to Mikrotik address list with Api
 import os, sys, mysql.connector, time ,paramiko
 from mysql.connector.plugins import mysql_native_password
 from mysql.connector.locales.eng import client_error
-import api
+import routeros_api
 
 # get the dir path of this file
 # dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -137,16 +137,27 @@ def DB_Connect(query, value, method):
 
 # Send IPs Over Mikrotik API
 def Send_to_Mikroitk_API(mikrotikhost, ip, ipblocktimeout, iplistname):
-    router = api.Api(mikrotikhost)
+
+    # make connection to mikrotik
+    router_connection = routeros_api.RouterOsApiPool(mikrotikhost, username=mikrotikapiuser, password=mikrotikapipass, plaintext_login=True, port=mikrotikapiport)
+    api = router_connection.get_api()
+    list_addresslist = api.get_resource('/ip/firewall/address-list')
+
     try:
-        r = router.talk(f'/ip/firewall/address-list/add =list={iplistname} =address={ip} =timeout={ipblocktimeout}')
-        if r == []:
+        # add ip to mikrotik address list
+        result = list_addresslist.add(list=iplistname, address=ip, timeout=ipblocktimeout)
+
+        if result == []:
             return ""
         else:
-            return r
+            return result
 
     except Exception as e:
+        print(e)
         return e.args[0]
+    
+    finally:
+        router_connection.disconnect()
 
 # Send Ips over SSH
 def send_to_firewall(ip):
